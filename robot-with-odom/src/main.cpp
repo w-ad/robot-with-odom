@@ -1,31 +1,43 @@
 #include "main.h"
-#include "bot.h"
 #include "lemlib/api.hpp"
 #include "lemlib/asset.hpp"
 #include "lemlib/chassis/chassis.hpp"
 #include "lemlib/chassis/trackingWheel.hpp"
 #include "lemlib/pose.hpp"
+#include "pros/adi.hpp"
 #include "pros/misc.h"
 #include "pros/motors.h"
 #include "pros/motors.hpp"
 
+pros::ADIDigitalOut intake_pistons('H');
+bool intake_up = true;
+
+pros::ADIDigitalOut wings('E');
+bool wings_out = false;
+
+pros::ADIDigitalOut PTO('G');
+bool PTO_On = false;
+
+
+
+pros::MotorGroup intake({11, -20});
+
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
 pros::MotorGroup leftMotors({
-    11,
-    12,
-    13,
+    -4,
+    -5,
+    -6,
 });
-pros::MotorGroup rightMotors({-18, -19, -20});
-pros::Imu imu(17);
-pros::Rotation horizontalEnc(15, true);
-lemlib::TrackingWheel horizontal(&horizontalEnc, lemlib::Omniwheel::NEW_275, -3.7);
+pros::MotorGroup rightMotors({1, 2, 3});
+pros::Imu imu(10);
+
 
 lemlib::Drivetrain drivetrain(
     &leftMotors, // left motor group
     &rightMotors, // right motor group
-    9.75, // 10 inch track width
-    2.75, // using new 2.75" omnis
-    600, // drivetrain rpm is 360
+    12.6, // 10 inch track width
+    3.25, // using new 2.75" omnis
+    450, // drivetrain rpm is 360
     2 // chase power is 2. If we had traction wheels, it would have been 8
 );
 lemlib::ControllerSettings linearController(
@@ -57,7 +69,10 @@ lemlib::OdomSensors sensors(
     nullptr, // horizontal tracking wheel 2, set to nullptr as we don't have a second one
     &imu // inertial sensor
 );
-lemlib::Chassis chassis(drivetrain, linearController, angularController, sensors);
+lemlib::Chassis chassis(drivetrain, linearController, angularController, sensors
+);
+
+
 
 void initialize() {
     pros::lcd::initialize(); // initialize brain screen
@@ -85,7 +100,13 @@ void initialize() {
             pros::delay(50);
         }
     });
+
+    intake_pistons.set_value(intake_up);
+    wings.set_value(wings_out);
+    PTO.set_value(PTO_On);
+    
 }
+
 
 void disabled() {}
 
@@ -94,20 +115,13 @@ void competition_initialize() {}
 void autonomous() {
     chassis.setBrakeMode(pros::E_MOTOR_BRAKE_HOLD);
     // close WP
-    intake = 127;
     chassis.moveToPose(12, 56, 0, 4000, {.maxSpeed = 127, .minSpeed = 127}, false);
     chassis.moveToPose(12, 24, -135, 4000, {.forwards = false, .maxSpeed = 100, .minSpeed = 80}, false);
-    intake = 0;
     chassis.moveToPose(-12, 12, 135, 4000, {.maxSpeed = 127, .minSpeed = 100}, false);
     chassis.turnTo(0, 0, 500, true, 127, false);
-    right_wing.set_value(true);
     chassis.moveToPose(0, 0, 45, 5000, {.maxSpeed = 127, .minSpeed = 100}, false);
     chassis.turnTo(chassis.getPose().x+24, chassis.getPose().y+24, 500, true, 127, false);
-    right_wing.set_value(false);
-    intake = -127;
     chassis.moveToPose(32, 0, 90, 4000, {.maxSpeed = 80, .minSpeed = 40}, false);
-    pros::delay(1000);
-    intake = 0;
 }
 
 void opcontrol() {
@@ -118,42 +132,35 @@ void opcontrol() {
         // get joystick positions
         int leftY = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
         int rightX = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
-        // move the chassis with curvature drive
-        chassis.curvature(leftY, rightX);
 
-        if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_RIGHT)) {
-            left_toggle = !left_toggle;
-            wings = left_toggle;
-            left_wing.set_value(left_toggle);
-        }
-        if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_Y)) {
-            right_toggle = !right_toggle;
-            wings = right_toggle;
-            right_wing.set_value(right_toggle);
-        }
+        drivetrain.leftMotors->move(leftY + rightX);
+        drivetrain.rightMotors->move(leftY - rightX);
+
         if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A)) {
-            wings = !wings;
-            right_wing.set_value(wings);
-            left_wing.set_value(wings);
+            intake_up = !intake_up;
+            intake_pistons.set_value(intake_up);
         }
 
-        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) {
-            intake = 127;
+        if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_Y)) {
+            wings_out = !wings_out;
+            wings.set_value(wings_out);
+        }
+
+        if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_DOWN)) {
+            PTO_On = !PTO_On;
+            PTO.set_value(PTO_On);
+        }
+
+        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
+            intake.move(127);
         } else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {
-            intake = -127;
+            intake.move(-127);
         } else {
-            intake = 0;
-        }
-
-        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {
-            hang = -127;
-        } else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
-            hang = 127;
-        } else {
-            hang = 0;
+            intake.move(0);
         }
 
         // delay to save resources
         pros::delay(10);
     }
 }
+
