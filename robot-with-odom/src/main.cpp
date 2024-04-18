@@ -9,13 +9,13 @@
 #include "pros/motors.h"
 #include "pros/motors.hpp"
 
-pros::ADIDigitalOut intake_pistons('H');
+pros::ADIDigitalOut intake_pistons('H'); // the pistons that hold the intake up by default to get to sub-6
 bool intake_up = true;
 
-pros::ADIDigitalOut wings('E');
+pros::ADIDigitalOut wings('E'); // the pistons that push out the wings
 bool wings_out = false;
 
-pros::ADIDigitalOut PTO('G');
+pros::ADIDigitalOut PTO('G'); // the pistons that complete the gear system for the hang (PTO)
 bool PTO_On = false;
 
 
@@ -125,8 +125,7 @@ void autonomous() {
 }
 
 void opcontrol() {
-    chassis.setBrakeMode(pros::E_MOTOR_BRAKE_BRAKE);
-    // controller
+       // controller
     // loop to continuously update motors
     while (true) {
         // get joystick positions
@@ -151,9 +150,9 @@ void opcontrol() {
             PTO.set_value(PTO_On);
         }
 
-        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
+        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {
             intake.move(127);
-        } else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {
+        } else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
             intake.move(-127);
         } else {
             intake.move(0);
