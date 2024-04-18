@@ -4,6 +4,7 @@
 #include "lemlib/chassis/chassis.hpp"
 #include "lemlib/chassis/trackingWheel.hpp"
 #include "lemlib/pose.hpp"
+#include "pros/adi.h"
 #include "pros/adi.hpp"
 #include "pros/misc.h"
 #include "pros/motors.h"
@@ -18,7 +19,8 @@ bool wings_out = false;
 pros::ADIDigitalOut PTO('G'); // the pistons that complete the gear system for the hang (PTO)
 bool PTO_On = false;
 
-
+pros::ADIDigitalOut Hang('F'); // the piston that releases the hang mech (three sheets of plexi)
+bool Hang_Activation = false;
 
 pros::MotorGroup intake({11, -20});
 
@@ -104,7 +106,7 @@ void initialize() {
     intake_pistons.set_value(intake_up);
     wings.set_value(wings_out);
     PTO.set_value(PTO_On);
-    
+    Hang.set_value(Hang_Activation);
 }
 
 
@@ -148,6 +150,11 @@ void opcontrol() {
         if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_DOWN)) {
             PTO_On = !PTO_On;
             PTO.set_value(PTO_On);
+        }
+
+if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP)) {
+            Hang_Activation = !Hang_Activation;
+            Hang.set_value(Hang_Activation);
         }
 
         if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {
