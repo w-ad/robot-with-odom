@@ -19,7 +19,7 @@ bool wings_out = false;
 pros::ADIDigitalOut PTO('G'); // the pistons that complete the gear system for the hang (PTO)
 bool PTO_On = false;
 
-pros::ADIDigitalOut Hang('F'); // the piston that releases the hang mech (three sheets of plexi)
+pros::ADIDigitalOut Hang('F'); // the piston that triggers the hang mech (three sheets of plexi)
 bool Hang_Activation = false;
 
 pros::MotorGroup intake({11, -20});
@@ -136,27 +136,27 @@ void opcontrol() {
 
         drivetrain.leftMotors->move(leftY + rightX);
         drivetrain.rightMotors->move(leftY - rightX);
-
+//moves drive based on joystick location
         if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A)) {
             intake_up = !intake_up;
             intake_pistons.set_value(intake_up);
         }
-
+//sets the intake down upon press via pneumatics
         if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_Y)) {
             wings_out = !wings_out;
             wings.set_value(wings_out);
         }
-
+//wing activation via pneumatics
         if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_DOWN)) {
             PTO_On = !PTO_On;
             PTO.set_value(PTO_On);
         }
-
+//PTO activation (completing gear system for hang) via pneumatics
 if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP)) {
             Hang_Activation = !Hang_Activation;
             Hang.set_value(Hang_Activation);
         }
-
+//triggers hang to go up via pneumatic
         if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {
             intake.move(127);
         } else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
@@ -164,6 +164,7 @@ if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP)) {
         } else {
             intake.move(0);
         }
+//Makes the intake intake when pressing l2 and outake when pressing R2, and sets it to stationary when neither is being pressed
 
         // delay to save resources
         pros::delay(10);
