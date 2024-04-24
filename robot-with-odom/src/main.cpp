@@ -10,6 +10,7 @@
 #include "pros/misc.hpp"
 #include "pros/motors.h"
 #include "pros/motors.hpp"
+#include <string>
 
 pros::ADIDigitalOut intake_pistons('H'); // the pistons that hold the intake up by default to get to sub-6
 bool intake_up = true;
@@ -169,18 +170,23 @@ void opcontrol() {
         int leftY = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
         int rightX = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
 
-//int number = 10;
 
-    //double temp1 = pros::c::motor_get_temperature(1);
-    //double temp2 = pros::c::motor_get_temperature(2);
-    //double temp3 = pros::c::motor_get_temperature(3);
-    //double temp4 = pros::c::motor_get_temperature(4);
-    //double temp5 = pros::c::motor_get_temperature(5);
-    //double temp6 = pros::c::motor_get_temperature(6);
+    double temp1 = pros::c::motor_get_temperature(1);
+   double temp2 = pros::c::motor_get_temperature(2);
+    double temp3 = pros::c::motor_get_temperature(3);
+    double temp4 = pros::c::motor_get_temperature(4);
+    double temp5 = pros::c::motor_get_temperature(5);
+    double temp6 = pros::c::motor_get_temperature(6);
 // get temp of each motor
-   // controller.clear();
-   // controller.print(std::uint8_t line, std::uint8_t col, const char *fmt, Params args...)
-    //controller.set_text(1, 1, );
+    controller.clear();
+    controller.set_text(1, 1, std::to_string(temp1));
+    controller.set_text(2, 1, std::to_string(temp2));
+    controller.set_text(3, 1, std::to_string(temp3));
+    controller.set_text(4, 1, std::to_string(temp4));
+    controller.set_text(5, 1, std::to_string(temp5));
+    controller.set_text(6, 1, std::to_string(temp6));
+// print motor temps onto the controller screen
+
 
         drivetrain.leftMotors->move(leftY + rightX);
         drivetrain.rightMotors->move(leftY - rightX);
