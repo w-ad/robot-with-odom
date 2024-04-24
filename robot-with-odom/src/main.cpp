@@ -7,6 +7,7 @@
 #include "pros/adi.h"
 #include "pros/adi.hpp"
 #include "pros/misc.h"
+#include "pros/misc.hpp"
 #include "pros/motors.h"
 #include "pros/motors.hpp"
 
@@ -44,7 +45,7 @@ lemlib::Drivetrain drivetrain(
 );
 lemlib::ControllerSettings linearController(
     10, // proportional gain (kP)
-    0, // integral gain (kI)
+    10, // integral gain (kI)
     3, // derivative gain (kD)
     3, // anti windup
     1, // small error range, in inches
@@ -55,7 +56,7 @@ lemlib::ControllerSettings linearController(
 );
 lemlib::ControllerSettings angularController(
     2, // proportional gain (kP)
-    0, // integral gain (kI)
+    1, // integral gain (kI)
     10, // derivative gain (kD)
     3, // anti windup
     1, // small error range, in degrees
@@ -103,6 +104,13 @@ void initialize() {
         }
     });
 
+    //pros::Motor motor1 = pros::Motor(1);
+    //pros::Motor motor2 = pros::Motor(2);
+   // pros::Motor motor3 = pros::Motor(3);
+   // pros::Motor motor4 = pros::Motor(4);
+   // pros::Motor motor5 = pros::Motor(5);
+   // pros::Motor motor6 = pros::Motor(6);
+
     intake_pistons.set_value(intake_up);
     wings.set_value(wings_out);
     PTO.set_value(PTO_On);
@@ -117,13 +125,40 @@ void competition_initialize() {}
 void autonomous() {
     chassis.setBrakeMode(pros::E_MOTOR_BRAKE_HOLD);
     // close WP
-    chassis.moveToPose(12, 56, 0, 4000, {.maxSpeed = 127, .minSpeed = 127}, false);
-    chassis.moveToPose(12, 24, -135, 4000, {.forwards = false, .maxSpeed = 100, .minSpeed = 80}, false);
-    chassis.moveToPose(-12, 12, 135, 4000, {.maxSpeed = 127, .minSpeed = 100}, false);
-    chassis.turnTo(0, 0, 500, true, 127, false);
-    chassis.moveToPose(0, 0, 45, 5000, {.maxSpeed = 127, .minSpeed = 100}, false);
-    chassis.turnTo(chassis.getPose().x+24, chassis.getPose().y+24, 500, true, 127, false);
-    chassis.moveToPose(32, 0, 90, 4000, {.maxSpeed = 80, .minSpeed = 40}, false);
+     chassis.moveToPose(1, -2, 90, 4000, {.maxSpeed = 127, .minSpeed = 80}, false);
+     wings.set_value(1);
+    chassis.moveToPose(0, 0, 90, 4000, {.maxSpeed = 127, .minSpeed = 80}, false);
+    chassis.moveToPose(-20, 2, 0, 4000, {.maxSpeed = 127, .minSpeed = 80}, false);
+
+
+
+
+
+    //* far WP
+   // chassis.moveToPose(0, 8, 0, 4000, {.maxSpeed = 127, .minSpeed = 80}, false);
+    //wings.set_value(1);
+    //chassis.moveToPose(-20, 23, -75, 4000, {.maxSpeed = 127, .minSpeed = 80}, false);
+    //intake.move(127);
+    //chassis.moveToPose(-31, 23, -75, 4000, {.maxSpeed = 127, .minSpeed = 80}, false);
+    //wings.set_value(0);
+    //chassis.moveToPose(-10, 23, 45, 1000, {.forwards = false, .maxSpeed = 127, .minSpeed = 80}, false);
+    //chassis.turnTo(-20, -60, 1000, false, 127, false);
+    //chassis.moveToPose(-20, -24, 0, 4000, {.forwards = false, .maxSpeed = 127, .minSpeed = 80}, false);
+    //chassis.moveToPose(-20, -24, 90, 4000, {.forwards = false, .maxSpeed = 127, .minSpeed = 80}, false);
+    //chassis.setPose(lemlib::Pose(0,0,-90));
+    //chassis.turnTo(2.5, 10, 4000);
+    //chassis.moveToPose(9, 17.2, 20, 4000, {.forwards = true, .maxSpeed = 127, .minSpeed = 80}, false); 
+     //wings.set_value(1);
+ 
+    intake.move(0);
+//close elims
+    
+
+
+//farside elims
+ 
+
+
 }
 
 void opcontrol() {
@@ -133,6 +168,19 @@ void opcontrol() {
         // get joystick positions
         int leftY = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
         int rightX = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
+
+//int number = 10;
+
+    //double temp1 = pros::c::motor_get_temperature(1);
+    //double temp2 = pros::c::motor_get_temperature(2);
+    //double temp3 = pros::c::motor_get_temperature(3);
+    //double temp4 = pros::c::motor_get_temperature(4);
+    //double temp5 = pros::c::motor_get_temperature(5);
+    //double temp6 = pros::c::motor_get_temperature(6);
+// get temp of each motor
+   // controller.clear();
+   // controller.print(std::uint8_t line, std::uint8_t col, const char *fmt, Params args...)
+    //controller.set_text(1, 1, );
 
         drivetrain.leftMotors->move(leftY + rightX);
         drivetrain.rightMotors->move(leftY - rightX);
@@ -157,6 +205,9 @@ if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP)) {
             Hang.set_value(Hang_Activation);
         }
 //triggers hang to go up via pneumatic
+
+
+
         if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {
             intake.move(127);
         } else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
